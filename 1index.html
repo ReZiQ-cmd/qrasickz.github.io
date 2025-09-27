@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SilentWorld - Minecraft Server</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;800&family=Roboto+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --background: #0A0A10;
+            --surface: rgba(16, 16, 26, 0.5);
+            --primary: #00F5D4;
+            --secondary: #9B5DE5;
+            --text-primary: #EAEAFB;
+            --text-secondary: #8A8A9E;
+            --border: rgba(234, 234, 251, 0.1);
+            --blur: 16px;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; scroll-behavior: smooth; }
+
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: var(--background); }
+        ::-webkit-scrollbar-thumb { background: linear-gradient(var(--secondary), var(--primary)); border-radius: 4px; }
+
+        body {
+            font-family: 'Sora', sans-serif;
+            background-color: var(--background);
+            color: var(--text-primary);
+            overflow-x: hidden;
+        }
+
+        #particles-js { position: fixed; width: 100%; height: 100%; z-index: -1; }
+
+        .container { width: 90%; max-width: 1100px; margin: 0 auto; }
+
+        header {
+            position: fixed; top: 0; left: 0; width: 100%;
+            padding: 1.5rem 0;
+            z-index: 1000;
+            background: var(--surface);
+            backdrop-filter: blur(var(--blur));
+            border-bottom: 1px solid var(--border);
+        }
+
+        nav { display: flex; justify-content: space-between; align-items: center; }
+        .logo img { height: 40px; }
+        .nav-menu { display: flex; align-items: center; gap: 2rem; }
+        .nav-links { list-style: none; display: flex; gap: 2.5rem; }
+        .nav-links a { color: var(--text-secondary); text-decoration: none; font-weight: 600; transition: color 0.3s ease; }
+        .nav-links a:hover { color: var(--primary); }
+        
+        .language-toggle {
+            display: flex; align-items: center; background-color: rgba(0,0,0,0.2);
+            border: 1px solid var(--border); border-radius: 20px;
+            padding: 4px; cursor: pointer; position: relative;
+        }
+        .language-toggle span { padding: 0 12px; font-size: 0.8rem; font-weight: 600; z-index: 2; }
+        .toggle-slider {
+            position: absolute; height: 80%; top: 10%; width: 45px;
+            background-color: var(--primary); border-radius: 16px;
+            transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+        .language-toggle.ru .toggle-slider { transform: translateX(45px); }
+
+        .menu-toggle {
+            display: none; background: none; border: none; z-index: 1001;
+            width: 30px; height: 24px; position: relative; cursor: pointer;
+        }
+        .menu-toggle span {
+            display: block; position: absolute; height: 3px; width: 100%;
+            background: var(--text-primary); border-radius: 3px;
+            transition: transform 0.3s ease, opacity 0.3s ease;
+        }
+        .menu-toggle span:nth-child(1) { top: 0; }
+        .menu-toggle span:nth-child(2) { top: 10px; }
+        .menu-toggle span:nth-child(3) { top: 20px; }
+        body.nav-active .menu-toggle span:nth-child(1) { transform: rotate(45deg) translate(7px, 7px); }
+        body.nav-active .menu-toggle span:nth-child(2) { opacity: 0; }
+        body.nav-active .menu-toggle span:nth-child(3) { transform: rotate(-45deg) translate(7px, -7px); }
+
+        main { padding-top: 120px; }
+        .hero { text-align: center; min-height: 90vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+        .hero h1 { font-size: clamp(3rem, 8vw, 6rem); font-weight: 800; line-height: 1.1; margin-bottom: 1.5rem; background: linear-gradient(90deg, #FFFFFF, #EAEAFB); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .hero p { font-size: clamp(1rem, 2.5vw, 1.2rem); color: var(--text-secondary); max-width: 600px; margin-bottom: 3rem; }
+
+        .ip-copy-wrapper {
+            display: flex; flex-wrap: wrap; justify-content: center; align-items: stretch;
+            background: var(--surface); border-radius: 12px;
+            border: 1px solid var(--border);
+            padding: 8px; gap: 8px; backdrop-filter: blur(var(--blur));
+            max-width: 450px; width: 100%;
+        }
+        #server-ip { font-family: 'Roboto Mono', monospace; font-size: 0.9rem; color: var(--text-secondary); padding: 10px 16px; flex-grow: 1; text-align: center; }
+        .copy-btn {
+            background: var(--primary); color: #0A0A10; border: none;
+            border-radius: 8px; padding: 10px 16px; font-size: 0.9rem;
+            font-weight: 700; cursor: pointer; transition: background-color 0.3s, transform 0.2s;
+            display: flex; align-items: center; justify-content: center; gap: 8px; min-width: 110px;
+        }
+        .copy-btn:hover { background: #14FFDE; transform: scale(1.05); }
+
+        .section { padding: 8rem 0; }
+        .section-title { text-align: center; font-size: clamp(2.2rem, 5vw, 3rem); font-weight: 800; margin-bottom: 5rem; }
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 2rem; perspective: 1000px; }
+        
+        .card {
+            background: linear-gradient(135deg, rgba(16, 16, 26, 0.4), rgba(16, 16, 26, 0.7));
+            padding: 2.5rem; border-radius: 16px; border: 1px solid var(--border);
+            backdrop-filter: blur(var(--blur)); transform-style: preserve-3d;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1), box-shadow 0.4s;
+        }
+        .card:hover { box-shadow: 0 20px 40px rgba(0,0,0,0.2), 0 0 0 2px var(--primary); }
+        .card h3 { font-size: 1.5rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.75rem; }
+        .card h3::before { content: ''; display: block; width: 4px; height: 24px; background: linear-gradient(var(--secondary), var(--primary)); border-radius: 2px; }
+        .card p, .card li { color: var(--text-secondary); line-height: 1.8; }
+        .card ol { padding-left: 1.25rem; }
+        
+        footer { text-align: center; padding: 3rem 0; margin-top: 4rem; border-top: 1px solid var(--border); }
+        
+        .reveal { opacity: 0; transform: translateY(40px); transition: opacity 0.8s ease, transform 0.8s ease; }
+        .reveal.visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 768px) {
+            .nav-menu { gap: 1rem; }
+            .nav-links {
+                position: fixed; top: 0; left: 0; width: 100%; height: 100vh;
+                background: rgba(10, 10, 16, 0.9); backdrop-filter: blur(20px);
+                flex-direction: column; align-items: center; justify-content: center;
+                gap: 2.5rem; transform: translateX(100%);
+                transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+            }
+            body.nav-active .nav-links { transform: translateX(0); }
+            .nav-links a { font-size: 1.5rem; color: var(--text-primary); }
+            .menu-toggle { display: block; }
+            .language-toggle { z-index: 1001; }
+        }
+    </style>
+</head>
+<body>
+    <div id="particles-js"></div>
+
+    <header>
+        <div class="container">
+            <nav>
+                <a href="#home" class="logo"><img src="logo.png" alt="SilentWorld Logo"></a>
+                <div class="nav-menu">
+                    <ul class="nav-links" id="nav-links">
+                        <li><a href="#about" data-lang-key="nav_about">About Project</a></li>
+                        <li><a href="#how-to-join" data-lang-key="nav_join">How to Join</a></li>
+                        <li><a href="#rules" data-lang-key="nav_rules">Rules</a></li>
+                    </ul>
+                    <div class="language-toggle" id="lang-toggle">
+                        <div class="toggle-slider"></div>
+                        <span class="en">EN</span>
+                        <span class="ru">RU</span>
+                    </div>
+                    <button class="menu-toggle" id="menu-toggle"><span></span><span></span><span></span></button>
+                </div>
+            </nav>
+        </div>
+    </header>
+
+    <main>
+        <section class="hero reveal" id="home">
+            <div class="container">
+                <h1 data-lang-key="hero_title">A New Reality.</h1>
+                <p data-lang-key="hero_subtitle">Modified survival on the stable 1.21.4 version. We preserve the classics while adding unique features.</p>
+                <div class="ip-copy-wrapper">
+                    <span id="server-ip">free.vortexhost.pro:20324</span>
+                    <button class="copy-btn" id="copy-btn">
+                        <span class="copy-icon">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        </span>
+                        <span class="copy-text" data-lang-key="copy_ip">Copy</span>
+                    </button>
+                </div>
+            </div>
+        </section>
+
+        <section id="about" class="section">
+            <div class="container">
+                <h2 class="section-title reveal" data-lang-key="about_title">Server Features</h2>
+                <div class="grid">
+                    <div class="card reveal" style="transition-delay: 100ms;">
+                        <h3 data-lang-key="about_card1_title">Concept</h3>
+                        <p data-lang-key="about_card1_text">SilentWorld is a balance of classic Minecraft and new mechanics. We enhance gameplay without overloading it, ensuring a stable experience on version 1.21.4.</p>
+                    </div>
+                    <div class="card reveal" style="transition-delay: 200ms;">
+                        <h3 data-lang-key="about_card2_title">Duping Mechanic</h3>
+                        <p data-lang-key="about_card2_text">A key feature is item frame duplication. With a 15% chance per click, this system rewards persistence without breaking the server economy.</p>
+                    </div>
+                    <div class="card reveal" style="transition-delay: 300ms;">
+                        <h3 data-lang-key="about_card3_title">Creator</h3>
+                        <p data-lang-key="about_card3_text">The project is created and maintained by qrasickz, aiming to build a quality, friendly community where every player feels welcome.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section id="how-to-join" class="section">
+            <div class="container">
+                <h2 class="section-title reveal" data-lang-key="join_title">How to Play</h2>
+                 <div class="card reveal">
+                    <h3 data-lang-key="join_card_title">4-Step Connection</h3>
+                    <ol>
+                        <li data-lang-key="join_step1">Launch Minecraft version <strong>1.21.4</strong>.</li>
+                        <li data-lang-key="join_step2">Select <strong>"Multiplayer"</strong>, then <strong>"Add Server"</strong>.</li>
+                        <li data-lang-key="join_step3">Paste the IP: <strong>free.vortexhost.pro:20324</strong></li>
+                        <li data-lang-key="join_step4">Save and welcome to SilentWorld!</li>
+                    </ol>
+                </div>
+            </div>
+        </section>
+
+        <section id="rules" class="section">
+            <div class="container">
+                <h2 class="section-title reveal" data-lang-key="rules_title">Chat Rules</h2>
+                <div class="grid">
+                    <div class="card reveal" style="transition-delay: 100ms;">
+                        <h3 data-lang-key="rules_card1_title">Respect</h3>
+                        <p data-lang-key="rules_card1_text">Treat others with respect. Discrimination, insults, or threats are prohibited.</p>
+                    </div>
+                    <div class="card reveal" style="transition-delay: 200ms;">
+                        <h3 data-lang-key="rules_card2_title">Communication</h3>
+                        <p data-lang-key="rules_card2_text">Spam, flooding, and advertising are forbidden. Keep the dialogue constructive.</p>
+                    </div>
+                    <div class="card reveal" style="transition-delay: 300ms;">
+                        <h3 data-lang-key="rules_card3_title">Consequences</h3>
+                        <p data-lang-key="rules_card3_text">Rule violations will result in a mute or ban. Ignorance is not an excuse.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer class="reveal">
+        <div class="container">
+            <p data-lang-key="footer_text">&copy; 2025 SilentWorld. Project by qrasickz.</p>
+        </div>
+    </footer>
+    
+    <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+    <script>
+        const translations = {
+            en: { nav_about:"About", nav_join:"Join", nav_rules:"Rules", hero_title:"A New Reality.", hero_subtitle:"Modified survival on the stable 1.21.4 version. We preserve the classics while adding unique features.", copy_ip:"Copy", copied_ip:"Copied!", about_title:"Server Features", about_card1_title:"Concept", about_card1_text:"SilentWorld is a balance of classic Minecraft and new mechanics. We enhance gameplay without overloading it, ensuring a stable experience on version 1.21.4.", about_card2_title:"Duping Mechanic", about_card2_text:"A key feature is item frame duplication. With a 15% chance per click, this system rewards persistence without breaking the server economy.", about_card3_title:"Creator", about_card3_text:"The project is created and maintained by qrasickz, aiming to build a quality, friendly community where every player feels welcome.", join_title:"How to Play", join_card_title:"4-Step Connection", join_step1:"Launch Minecraft version <strong>1.21.4</strong>.", join_step2:"Select <strong>\"Multiplayer\"</strong>, then <strong>\"Add Server\"</strong>.", join_step3:"Paste the IP: <strong>free.vortexhost.pro:20324</strong>", join_step4:"Save and welcome to SilentWorld!", rules_title:"Chat Rules", rules_card1_title:"Respect", rules_card1_text:"Treat others with respect. Discrimination, insults, or threats are prohibited.", rules_card2_title:"Communication", rules_card2_text:"Spam, flooding, and advertising are forbidden. Keep the dialogue constructive.", rules_card3_title:"Consequences", rules_card3_text:"Rule violations will result in a mute or ban. Ignorance is not an excuse.", footer_text:"&copy; 2025 SilentWorld. Project by qrasickz." },
+            ru: { nav_about:"О проекте", nav_join:"Как зайти", nav_rules:"Правила", hero_title:"Новая Реальность.", hero_subtitle:"Модифицированное выживание на стабильной версии 1.21.4. Сохраняя классику, мы добавляем уникальные возможности.", copy_ip:"Копировать", copied_ip:"Скопировано!", about_title:"Особенности сервера", about_card1_title:"Концепция", about_card1_text:"SilentWorld — это баланс классического Minecraft и новых механик. Мы улучшаем геймплей, не перегружая его, и обеспечиваем стабильность на версии 1.21.4.", about_card2_title:"Механика Дюпа", about_card2_text:"Ключевая особенность — дублирование через рамку. С шансом 15% за клик, система вознаграждает настойчивость, не ломая экономику сервера.", about_card3_title:"Создатель", about_card3_text:"Проект создан и поддерживается qrasickz. Цель — создать качественное, дружелюбное сообщество, где каждый игрок чувствует себя комфортно.", join_title:"Как начать игру", join_card_title:"Подключение за 4 шага", join_step1:"Запустите Minecraft версии <strong>1.21.4</strong>.", join_step2:"Выберите <strong>«Сетевая игра»</strong>, затем <strong>«Добавить»</strong>.", join_step3:"Вставьте IP: <strong>free.vortexhost.pro:20324</strong>", join_step4:"Сохраните и добро пожаловать в SilentWorld!", rules_title:"Правила чата", rules_card1_title:"Уважение", rules_card1_text:"Относитесь к другим с уважением. Дискриминация, оскорбления или угрозы запрещены.", rules_card2_title:"Общение", rules_card2_text:"Спам, флуд и реклама запрещены. Поддерживайте конструктивный диалог.", rules_card3_title:"Последствия", rules_card3_text:"Нарушение правил карается мутом или баном. Незнание правил не является оправданием.", footer_text:"&copy; 2025 SilentWorld. Проект от qrasickz." }
+        };
+
+        document.addEventListener('DOMContentLoaded', () => {
+            const langToggle = document.getElementById('lang-toggle');
+            const copyBtn = document.getElementById('copy-btn');
+            const menuToggle = document.getElementById('menu-toggle');
+            const navLinks = document.getElementById('nav-links');
+
+            const setLanguage = (lang) => {
+                document.documentElement.lang = lang;
+                document.querySelectorAll('[data-lang-key]').forEach(el => {
+                    const key = el.dataset.langKey;
+                    if (translations[lang][key]) el.innerHTML = translations[lang][key];
+                });
+                localStorage.setItem('language', lang);
+                langToggle.classList.toggle('ru', lang === 'ru');
+            };
+
+            langToggle.addEventListener('click', () => {
+                const currentLang = localStorage.getItem('language') === 'ru' ? 'en' : 'ru';
+                setLanguage(currentLang);
+            });
+            
+            copyBtn.addEventListener('click', () => {
+                const ipText = document.getElementById('server-ip').innerText;
+                navigator.clipboard.writeText(ipText).then(() => {
+                    const currentLang = localStorage.getItem('language') || 'en';
+                    const copyTextEl = copyBtn.querySelector('.copy-text');
+                    const copyIconEl = copyBtn.querySelector('.copy-icon');
+                    
+                    const originalText = copyTextEl.innerHTML;
+                    const originalIcon = copyIconEl.innerHTML;
+
+                    copyTextEl.textContent = translations[currentLang]['copied_ip'];
+                    copyIconEl.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                    copyBtn.style.backgroundColor = '#4CAF50';
+                    
+                    setTimeout(() => {
+                        copyTextEl.innerHTML = originalText;
+                        copyIconEl.innerHTML = originalIcon;
+                        copyBtn.style.backgroundColor = '';
+                    }, 2000);
+                });
+            });
+
+            menuToggle.addEventListener('click', () => {
+                document.body.classList.toggle('nav-active');
+            });
+            navLinks.querySelectorAll('a').forEach(link => {
+                link.addEventListener('click', () => document.body.classList.remove('nav-active'));
+            });
+
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        observer.unobserve(entry.target);
+                    }
+                });
+            }, { threshold: 0.1 });
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+            
+            const cards = document.querySelectorAll('.card');
+            cards.forEach(card => {
+                card.addEventListener('mousemove', (e) => {
+                    const rect = card.getBoundingClientRect();
+                    const x = e.clientX - rect.left - rect.width / 2;
+                    const y = e.clientY - rect.top - rect.height / 2;
+                    const rotateX = -y / 20;
+                    const rotateY = x / 20;
+                    card.style.transform = `rotateX(${rotateX}deg) rotateY(${rotateY}deg) scale(1.05)`;
+                });
+                card.addEventListener('mouseleave', () => {
+                    card.style.transform = 'rotateX(0deg) rotateY(0deg) scale(1)';
+                });
+            });
+            
+            particlesJS("particles-js", {"particles":{"number":{"value":60,"density":{"enable":true,"value_area":800}},"color":{"value":"#8A8A9E"},"shape":{"type":"circle"},"opacity":{"value":0.5,"random":true},"size":{"value":3,"random":true},"line_linked":{"enable":false},"move":{"enable":true,"speed":1,"direction":"none","random":true,"straight":false,"out_mode":"out"}},"interactivity":{"detect_on":"canvas","events":{"onhover":{"enable":true,"mode":"grab"},"onclick":{"enable":false}},"modes":{"grab":{"distance":140,"line_opacity":0.5}}}});
+
+            setLanguage(localStorage.getItem('language') || 'en');
+        });
+    </script>
+</body>
+</html>
