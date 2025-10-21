@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title>Правила — Альматея</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --color-bg: #F5F5F7;
+            --color-surface: #FFFFFF;
+            --color-surface-secondary: linear-gradient(180deg, #FFFFFF 0%, #FDFDFD 100%);
+            --color-text-primary: #1D1D1F;
+            --color-text-secondary: #5A5A5F;
+            --color-text-accent: #007AFF;
+            --color-border: #EAEAEB;
+            --color-tag-bg: rgba(0, 122, 255, 0.1);
+            --color-overlay-bg: rgba(29, 29, 31, 0.7);
+
+            --color-danger-primary: #D9363E;
+            --color-danger-bg: linear-gradient(135deg, #FF4D4F, #D9363E);
+            --color-danger-text: #FFFFFF;
+        }
+
+        /* --- СТИЛИ ДЛЯ ПРЕДЗАГРУЗКИ --- */
+        #preloader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: var(--color-bg);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease-out, visibility 0.5s ease-out;
+        }
+        .spinner {
+            width: 40px;
+            height: 40px;
+            border: 4px solid rgba(0, 122, 255, 0.2);
+            border-top-color: var(--color-text-accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+        }
+        #preloader.loaded {
+            opacity: 0;
+            visibility: hidden;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        ::-webkit-scrollbar { width: 10px; }
+        ::-webkit-scrollbar-track { background: var(--color-bg); }
+        ::-webkit-scrollbar-thumb { background-color: #d1d1d6; border-radius: 10px; border: 2px solid var(--color-bg); }
+        ::-webkit-scrollbar-thumb:hover { background-color: var(--color-text-accent); }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        html {
+            -webkit-font-smoothing: antialiased;
+            -moz-osx-font-smoothing: grayscale;
+            scroll-behavior: smooth;
+            scrollbar-color: #d1d1d6 var(--color-bg);
+            scrollbar-width: thin;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background-color: var(--color-bg);
+            color: var(--color-text-primary);
+            display: flex;
+            justify-content: center;
+            padding: 3rem 1rem;
+            -webkit-overflow-scrolling: touch;
+            /* Скрываем контент до полной загрузки */
+            opacity: 0;
+            transition: opacity 0.5s ease-in;
+        }
+        body.loaded {
+            opacity: 1;
+        }
+        body.menu-open {
+            overflow: hidden;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px;
+            background-color: var(--color-surface);
+            border-radius: 24px;
+            box-shadow: 0 16px 60px rgba(0, 0, 0, 0.07);
+            border: 1px solid var(--color-border);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1.5rem;
+            padding: 1rem 1rem 1rem 3rem;
+            border-bottom: 1px solid var(--color-border);
+            background: var(--color-surface-secondary);
+        }
+
+        .chat-info { display: flex; align-items: center; gap: 1.5rem; }
+        .chat-avatar { width: 64px; height: 64px; border-radius: 50%; object-fit: cover; border: 3px solid var(--color-surface); box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1); }
+        .chat-details h1 { font-size: 2rem; font-weight: 800; }
+        .chat-details p { font-size: 1rem; color: var(--color-text-secondary); }
+
+        .section { padding: 3rem; }
+        .section:not(:last-child) { border-bottom: 1px solid var(--color-border); }
+        .section-title { font-size: 1.75rem; font-weight: 700; margin-bottom: 2rem; }
+        
+        details.thesis-item { border-bottom: 1px solid var(--color-border); padding: 0.5rem 0; }
+        details.thesis-item:last-of-type { border-bottom: none; }
+        summary.thesis-summary { display: flex; justify-content: space-between; align-items: center; padding: 1rem 0; cursor: pointer; list-style: none; }
+        summary.thesis-summary::-webkit-details-marker { display: none; }
+        .thesis-summary-title { font-size: 1.1rem; font-weight: 600; }
+        .thesis-summary .icon { transition: transform 0.3s ease; font-weight: bold; color: var(--color-text-accent); }
+        details.thesis-item[open] .thesis-summary .icon { transform: rotate(45deg); }
+        .thesis-content { padding: 0.5rem 0 1.5rem 0; font-size: 0.95rem; color: var(--color-text-secondary); line-height: 1.7; }
+        .thesis-content code { background-color: var(--color-bg); border: 1px solid var(--color-border); padding: 2px 6px; border-radius: 4px; font-size: 0.9em; }
+
+        .rules-list { list-style: none; counter-reset: rules-counter; }
+        .rule-item { display: flex; align-items: flex-start; gap: 1.25rem; padding: 1.5rem 0; counter-increment: rules-counter; border-bottom: 1px solid var(--color-bg); }
+        .rule-item:last-child { border-bottom: none; }
+        .rule-item .icon { flex-shrink: 0; width: 24px; height: 24px; display: grid; place-items: center; margin-top: 0.15rem; color: var(--color-text-secondary); background-color: var(--color-bg); border-radius: 50%; font-weight: 600; font-size: 0.85rem; }
+        .rule-item .icon::before { content: counter(rules-counter); }
+        .rule-content p { font-size: 1rem; line-height: 1.6; }
+        .punishment-tag { display: inline-block; margin-top: 0.75rem; font-size: 0.8rem; font-weight: 500; padding: 0.25rem 0.75rem; border-radius: 12px; color: var(--color-text-accent); background-color: var(--color-tag-bg); }
+
+        .rule-item--strict { background: var(--color-danger-bg); border-radius: 16px; padding: 1.5rem; margin: 1.5rem 0; box-shadow: 0 8px 25px -10px var(--color-danger-primary); border: none; }
+        .rule-item--strict .icon { background-color: rgba(255,255,255,0.2); color: var(--color-danger-text); }
+        .rule-item--strict .rule-content p { color: var(--color-danger-text); }
+        .rule-item--strict .punishment-tag { background-color: #FFFFFF; color: var(--color-danger-primary); font-weight: 700; font-size: 0.85rem; animation: pulse 1.5s infinite ease-in-out; }
+
+        @keyframes pulse {
+            0% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 54, 62, 0.7); }
+            70% { transform: scale(1.03); box-shadow: 0 0 0 12px rgba(217, 54, 62, 0); }
+            100% { transform: scale(1); box-shadow: 0 0 0 0 rgba(217, 54, 62, 0); }
+        }
+        
+        .moderation-note { margin-top: 2rem; padding: 1.25rem; background-color: var(--color-bg); border-radius: 12px; border: 1px solid var(--color-border); font-size: 0.9rem; line-height: 1.6; color: #555; }
+        
+        .contacts-list a { display: block; color: var(--color-text-accent); text-decoration: none; font-weight: 500; font-size: 1.1rem; padding: 0.75rem 0; transition: opacity 0.2s; }
+        .contacts-list a:hover { opacity: 0.7; }
+
+        .footer { text-align: center; padding: 2.5rem; background-color: var(--color-bg); }
+        .footer p { font-size: 0.9rem; color: var(--color-text-secondary); }
+        .footer a { color: var(--color-text-primary); font-weight: 500; text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: var(--color-overlay-bg); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); display: flex; justify-content: center; align-items: center; z-index: 1000; opacity: 0; visibility: hidden; transition: opacity 0.3s ease, visibility 0.3s ease; }
+        .modal-overlay.visible { opacity: 1; visibility: visible; }
+        .modal-content { background: var(--color-surface); padding: 2rem; border-radius: 16px; max-width: 400px; width: calc(100% - 2rem); text-align: center; box-shadow: 0 10px 40px rgba(0,0,0,0.1); transform: scale(0.95); transition: transform 0.3s ease; }
+        .modal-overlay.visible .modal-content { transform: scale(1); }
+        .modal-content h2 { margin-bottom: 0.5rem; font-size: 1.5rem; }
+        .modal-content p { margin-bottom: 1.5rem; color: var(--color-text-secondary); line-height: 1.6; }
+        #close-modal-btn { width: 100%; padding: 0.8rem 1rem; border: none; border-radius: 8px; background-color: var(--color-text-accent); color: white; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background-color 0.2s, opacity 0.2s; }
+        #close-modal-btn:disabled { background-color: #BDBDBD; cursor: not-allowed; opacity: 0.7; }
+        
+        .quick-nav { position: fixed; top: 50%; right: 30px; transform: translateY(-50%); z-index: 999; display: flex; flex-direction: column; gap: 16px; }
+        .quick-nav a { width: 12px; height: 12px; background-color: #d1d1d6; border-radius: 50%; display: block; position: relative; transition: all 0.3s ease; }
+        .quick-nav a:hover { background-color: var(--color-text-accent); transform: scale(1.2); }
+        .quick-nav a.active { background-color: var(--color-text-accent); transform: scale(1.5); }
+        .quick-nav a::after { content: attr(data-tooltip); position: absolute; top: 50%; right: 150%; transform: translateY(-50%); background-color: var(--color-text-primary); color: white; padding: 4px 10px; border-radius: 6px; font-size: 0.8rem; font-weight: 500; white-space: nowrap; opacity: 0; visibility: hidden; transition: all 0.3s ease; }
+        .quick-nav a:hover::after { opacity: 1; visibility: visible; right: 170%; }
+
+        .mobile-nav-toggle { display: none; }
+        .mobile-nav { display: none; }
+
+        .fade-in { opacity: 0; transform: translateY(20px); transition: opacity 0.6s ease-out, transform 0.6s ease-out; }
+        .fade-in.is-visible { opacity: 1; transform: translateY(0); }
+
+        @media (max-width: 1024px) {
+            .quick-nav { display: none; }
+            .mobile-nav-toggle {
+                display: flex; flex-direction: column; justify-content: space-around;
+                width: 44px; height: 44px; background: transparent; border: none; cursor: pointer; padding: 10px; z-index: 1002; position: relative;
+            }
+            .mobile-nav-toggle span { display: block; width: 24px; height: 2px; background-color: var(--color-text-primary); border-radius: 1px; transition: transform 0.3s ease, opacity 0.3s ease; }
+            body.menu-open .mobile-nav-toggle span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+            body.menu-open .mobile-nav-toggle span:nth-child(2) { opacity: 0; }
+            body.menu-open .mobile-nav-toggle span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
+
+            .mobile-nav {
+                position: fixed; top: 0; right: 0; width: 280px; height: 100%;
+                background: var(--color-surface); box-shadow: -10px 0 30px rgba(0,0,0,0.1);
+                transform: translateX(100%); transition: transform 0.4s cubic-bezier(0.23, 1, 0.32, 1);
+                display: flex; flex-direction: column; align-items: center; justify-content: center;
+                z-index: 1001;
+            }
+            body.menu-open .mobile-nav { transform: translateX(0); }
+            .mobile-nav a { color: var(--color-text-primary); text-decoration: none; font-size: 1.5rem; font-weight: 600; padding: 1.5rem 0; }
+        }
+
+        @media (max-width: 768px) {
+            body { padding: 0; }
+            .container { border-radius: 0; min-height: 100vh; border: none; }
+            .header { padding: 1rem; }
+            .chat-info { gap: 1rem; }
+            .chat-avatar { width: 56px; height: 56px; }
+            .chat-details h1 { font-size: 1.5rem; }
+            .section { padding: 2.5rem 1.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ЭКРАН ПРЕДЗАГРУЗКИ -->
+    <div id="preloader">
+        <div class="spinner"></div>
+    </div>
+
+    <div id="welcome-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>Добро пожаловать</h2>
+            <p>На этой странице изложены правила поведения в чате <a href="https://t.me/EWalmateya" target="_blank" rel="noopener noreferrer">«Альматея»</a>. Пожалуйста, ознакомьтесь с ними.</p>
+            <button id="close-modal-btn" disabled>Ознакомиться (<span id="countdown">5</span>)</button>
+        </div>
+    </div>
+
+    <nav class="quick-nav">
+        <a href="#philosophy" data-tooltip="Философия" class="active"></a>
+        <a href="#rules" data-tooltip="Правила"></a>
+        <a href="#punishments" data-tooltip="Наказания"></a>
+        <a href="#contacts" data-tooltip="Контакты"></a>
+    </nav>
+    
+    <nav class="mobile-nav">
+        <a href="#philosophy">Философия</a>
+        <a href="#rules">Правила</a>
+        <a href="#punishments">Наказания</a>
+        <a href="#contacts">Контакты</a>
+    </nav>
+
+    <div class="container">
+        <header class="header">
+            <div class="chat-info">
+                <img src="1.png" alt="Аватар чата" class="chat-avatar">
+                <div class="chat-details">
+                    <h1>Альматея</h1>
+                    <p>Выживание сервера EnvyWorld</p>
+                </div>
+            </div>
+            <button class="mobile-nav-toggle" aria-label="Открыть меню">
+                <span></span><span></span><span></span>
+            </button>
+        </header>
+
+        <section class="section fade-in" id="philosophy">
+            <h2 class="section-title">Философия чата</h2>
+            <details class="thesis-item" open>
+                <summary class="thesis-summary"><span class="thesis-summary-title">Уважение — это фундамент</span><span class="icon">+</span></summary>
+                <div class="thesis-content">Мы — сообщество разных людей. Прямые оскорбления, токсичное поведение и унижение других недопустимы. Конструктивная критика приветствуется, но переход на личности — нет. <br><b>Пример:</b> Вместо <code>«ты делаешь ужасно»</code>, попробуйте <code>«мне кажется, можно улучшить вот этот момент»</code>.</div>
+            </details>
+            <details class="thesis-item">
+                <summary class="thesis-summary"><span class="thesis-summary-title">Общение, а не хаос</span><span class="icon">+</span></summary>
+                <div class="thesis-content">Чат создан для обмена идеями и помощи. Бессмысленный флуд, спам и оффтоп в больших количествах мешают остальным. Старайтесь придерживаться темы и не засорять эфир.</div>
+            </details>
+            <details class="thesis-item">
+                <summary class="thesis-summary"><span class="thesis-summary-title">Безопасность прежде всего</span><span class="icon">+</span></summary>
+                 <div class="thesis-content">Любые материалы, угрожающие безопасности или комфорту участников (контент 18+, шок-контент, вредоносные ссылки, деанонимизация), запрещены. Наша цель — создать безопасное пространство для всех.</div>
+            </details>
+        </section>
+
+        <section class="section fade-in" id="rules">
+            <h2 class="section-title">Основные положения</h2>
+            <ul class="rules-list">
+                <!-- --- ИСПРАВЛЕНЫ И ПЕРЕФОРМУЛИРОВАНЫ ВСЕ ПУНКТЫ ПРАВИЛ --- -->
+                <li class="rule-item rule-item--strict fade-in"><div class="icon"></div><div class="rule-content"><p>Распространение или обсуждение контента, связанного с насилием над детьми, тяжелым шок-контентом (расчленение, пытки), а также вредоносного ПО.</p><span class="punishment-tag">Наказание: Блокировка навсегда. Без исключений.</span></div></li>
+                <li class="rule-item rule-item--strict fade-in"><div class="icon"></div><div class="rule-content"><p>Прямые, недвусмысленные угрозы физической расправы, нанесения вреда здоровью или жизни участника чата или его близких в реальном мире.</p><span class="punishment-tag">Наказание: Блокировка навсегда. Не оспаривается.</span></div></li>
+                <li class="rule-item rule-item--strict fade-in"><div class="icon"></div><div class="rule-content"><p>Деанонимизация (доксинг) — публикация личной информации (адрес, телефон, документы, фото) без согласия владельца с целью травли или причинения вреда.</p><span class="punishment-tag">Наказание: Блокировка навсегда. Абсолютно.</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Оскорбление участников и провокация конфликтов.</p><span class="punishment-tag">Наказание: Мут</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Упоминание родных в оскорбительной или унизительной форме.</p><span class="punishment-tag">Наказание: Пред / Мут</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Обсуждение политики, национализма, пропаганда нацизма/фашизма.</p><span class="punishment-tag">Наказание: Пред / Бан</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Публикация любых ссылок, содержащих рекламу чего-либо.</p><span class="punishment-tag">Наказание: Мут / Бан</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Спам и флуд (от 4-х однотипных сообщений), мешающий общению.</p><span class="punishment-tag">Наказание: Пред / Мут</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Угрозы и вымогательства в любой форме (кроме строгих правил).</p><span class="punishment-tag">Наказание: Пред / Мут</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Выдача себя за другого участника или администратора.</p><span class="punishment-tag">Наказание: Пред</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Разжигание межнациональных или межрасовых конфликтов.</p><span class="punishment-tag">Наказание: Бан / Мут</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Использование мультиаккаунтов для обхода наказаний.</p><span class="punishment-tag">Наказание: Возврат наказания</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Провокация администрации или модерации на конфликт.</p><span class="punishment-tag">Наказание: Мут</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Оскорбление или хамское поведение в сторону персонала чата.</p><span class="punishment-tag">Наказание: Бан</span></div></li>
+                <li class="rule-item fade-in"><div class="icon"></div><div class="rule-content"><p>Администрация вправе выдать наказание на своё усмотрение за нарушение негласных норм поведения.</p><span class="punishment-tag">Наказание: На усмотрение администрации</span></div></li>
+            </ul>
+        </section>
+
+        <section class="section fade-in" id="punishments">
+            <h2 class="section-title">Порядок наказаний</h2>
+            <p style="color: var(--color-text-secondary); margin-bottom: 1.5rem;">Нарушение правил ведет к применению одной из следующих мер. Выбор меры зависит от тяжести нарушения и предыдущей истории участника.</p>
+            <div class="theses-list">
+                <div class="thesis"><b>Пред</b> — устное предупреждение. Является первым шагом при незначительных нарушениях.</div>
+                <div class="thesis"><b>Мут</b> — временное ограничение на отправку сообщений (1-3 часа). Применяется при повторных или более серьезных нарушениях.</div>
+                <div class="thesis"><b>Бан</b> — полная блокировка доступа к чату. Используется в случаях грубых или систематических нарушений.</div>
+            </div>
+            <div class="moderation-note"><strong>Принцип прозрачности:</strong> Модерация обязана указать причину нарушенного правила при выдаче наказания. Если причина не указана, наказание может быть оспорено и снято.</div>
+        </section>
+
+        <section class="section fade-in" id="contacts">
+            <h2 class="section-title">Связь с администрацией</h2>
+            <div class="contacts-list">
+                 <a href="https://t.me/w_t_kyt" target="_blank" rel="noopener noreferrer">@w_t_kyt</a>
+                 <a href="https://t.me/Deimanchik" target="_blank" rel="noopener noreferrer">@Deimanchik</a>
+            </div>
+        </section>
+
+        <footer class="footer">
+            <p>Владелец ресурса — <a href="https://t.me/qrasickz" target="_blank" rel="noopener noreferrer">qrasickz</a></p>
+        </footer>
+    </div>
+<script>
+// --- ОБНОВЛЕННЫЙ СКРИПТ С ЛОГИКОЙ ПРЕДЗАГРУЗКИ ---
+window.onload = () => {
+    const preloader = document.getElementById('preloader');
+    const body = document.body;
+
+    // 1. Плавно скрываем прелоадер
+    preloader.classList.add('loaded');
+    
+    // 2. Плавно показываем основной контент
+    body.classList.add('loaded');
+
+    // 3. После завершения анимации прелоадера, запускаем логику модального окна
+    setTimeout(() => {
+        // Убираем прелоадер из DOM, чтобы не мешал
+        preloader.style.display = 'none';
+
+        const modal = document.getElementById('welcome-modal');
+        const closeModalBtn = document.getElementById('close-modal-btn');
+        const countdownSpan = document.getElementById('countdown');
+        
+        if (modal && !sessionStorage.getItem('rulesVisited')) {
+            modal.classList.add('visible');
+            let count = 5;
+            const interval = setInterval(() => {
+                count--;
+                countdownSpan.textContent = count;
+                if (count <= 0) {
+                    clearInterval(interval);
+                    countdownSpan.parentElement.innerHTML = 'Закрыть';
+                    closeModalBtn.disabled = false;
+                }
+            }, 1000);
+        }
+
+        if (closeModalBtn) {
+            closeModalBtn.addEventListener('click', () => {
+                modal.classList.remove('visible');
+                sessionStorage.setItem('rulesVisited', 'true');
+            });
+        }
+    }, 500); // Это время должно совпадать с transition в CSS для #preloader
+
+    // --- Остальной JS-код остается без изменений ---
+
+    // Quick Nav logic
+    const sections = document.querySelectorAll('.section');
+    const navLinks = document.querySelectorAll('.quick-nav a');
+    
+    const observerOptions = { root: null, rootMargin: '0px', threshold: 0.5 };
+
+    const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                navLinks.forEach(link => {
+                    link.classList.remove('active');
+                    if (link.getAttribute('href').substring(1) === entry.target.id) {
+                        link.classList.add('active');
+                    }
+                });
+            }
+        });
+    }, observerOptions);
+
+    sections.forEach(section => observer.observe(section));
+
+    // Mobile nav toggle
+    const mobileNavToggle = document.querySelector('.mobile-nav-toggle');
+    if(mobileNavToggle) {
+        mobileNavToggle.addEventListener('click', () => {
+            document.body.classList.toggle('menu-open');
+        });
+    }
+    
+    // Close mobile menu when a link is clicked
+    const mobileNavLinks = document.querySelectorAll('.mobile-nav a');
+    mobileNavLinks.forEach(link => {
+        link.addEventListener('click', () => {
+            document.body.classList.remove('menu-open');
+        });
+    });
+
+    // Fade-in effect for sections
+    const faders = document.querySelectorAll('.fade-in');
+    const fadeInObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach(entry => {
+            if (entry.isIntersecting) {
+                entry.target.classList.add('is-visible');
+                observer.unobserve(entry.target);
+            }
+        });
+    }, { threshold: 0.1 });
+
+    faders.forEach(fader => fadeInObserver.observe(fader));
+};
+</script>
+</body>
+</html>
